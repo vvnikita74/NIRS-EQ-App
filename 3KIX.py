@@ -91,7 +91,7 @@ def filter(data):
     
     # define FIR Filter Parameters
     order = 101 # filter order
-    cutoff_freq = 1000 # сutoff frequency in Hz
+    cutoff_freq = 100 # сutoff frequency in Hz
     
     # coefficients for rectangular window
     b = signal.firwin(order, cutoff_freq, window='rectangular', pass_zero='lowpass', fs=44100)
