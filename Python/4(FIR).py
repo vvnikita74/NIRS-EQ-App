@@ -89,7 +89,7 @@ def play_audio():
 # Define a function for butter filter 
 def butter_filter(data):
     
-    # define IIR filter parameters
+    # define FIR filter parameters
     order = 10 # filter order
     cutoff_freq = 1000 # сutoff frequency in Hz
     

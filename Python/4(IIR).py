@@ -90,7 +90,7 @@ def play_audio():
 def rectangle_filter(data):
     
     # define FIR Filter Parameters
-    order = 101 # filter order
+    order = 5001 # filter order
     cutoff_freq = 1000 # сutoff frequency in Hz
 
     # coefficients for rectangular window

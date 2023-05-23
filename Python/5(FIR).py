@@ -13,7 +13,7 @@ root = tk.Tk()
 root.title("WAV Player")
 root.geometry("800x600")
 
-# Define variables to store the file path and playback status, default audio_format and list of all pyAudio formats
+# Define variables to store the file path and playback status, default buffer size
 file_path = ""
 playing = False
 buf_size = 2048
@@ -67,7 +67,7 @@ def play_audio():
     def callback(in_data, frame_count, time_info, status):
         if filter_on:
             data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
-            data = filter(data)
+            data = rectangle_filter(data)
         else:
             data = wf.readframes(frame_count)
         if playing:
@@ -86,19 +86,20 @@ def play_audio():
         time.sleep(0.1)
 
 
-# Define a function for filter 
-def filter(data):
+# Define a function for butter filter 
+def rectangle_filter(data):
     
     # define FIR Filter Parameters
-    order = 101 # filter order
-    cutoff_freq = 100 # сutoff frequency in Hz
-    
+    order = 5001 # filter order
+    low_cutoff = 150 # Lower cutoff frequency in Hz
+    high_cutoff = 6000 # Upper cutoff frequency in Hz
+    cutoff_freq = [low_cutoff, high_cutoff]
     # coefficients for rectangular window
-    b = signal.firwin(order, cutoff_freq, window='rectangular', pass_zero='lowpass', fs=44100)
+    b = signal.firwin(order, cutoff_freq, window='rectangular', pass_zero='bandstop', fs=44100)
     
     # coefficients for hamming window
-    # b = signal.firwin(order, cutoff_freq, window='hamming', pass_zero='lowpass', fs=44100)
-    
+    # b = signal.firwin(order, cutoff_freq, window='hamming', pass_zero='bandstop', fs=44100)
+
     # apply filter to audio signal
     filtered_data = signal.lfilter(b, 1, data)
 
