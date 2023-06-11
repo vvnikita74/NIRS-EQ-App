@@ -11,8 +11,8 @@ import time
 
 # Define the main window
 root = tk.Tk()
-root.title("WAV Player")
-root.geometry("1280x720")
+root.title("Equalizer")
+root.geometry("1366x600")
 
 
 # Define variables to store the file path and playback/filter status, default buffer size
@@ -21,95 +21,38 @@ playing = False
 buf_size = 2048
 filter_on = False
 
-order1 = 1
-order2 = 1
-order3 = 1
-order4 = 1
-order5 = 1
-order6 = 1
-order7 = 1
-order8 = 1
-
 file_label = tk.Label(root, text='Selected file: None', font=("Bahnschrift", 16))
-file_label.place(relx=0.1, rely=0.25, anchor="center", y=10)
+file_label.place(relx=0.1, rely=0.1, anchor="center", y=10)
 
 buf_label = tk.Label(root, text="Buffer size: " + str(buf_size), font=("Bahnschrift", 16))
-buf_label.place(relx=0.1, rely=0.4, anchor="center", y=10)
+buf_label.place(relx=0.1, rely=0.5, anchor="center")
+
+scale = tk.Scale(root, from_=64, to=2048, orient=tk.HORIZONTAL)
+scale.set(buf_size)
+scale.bind("<ButtonRelease-1>", lambda event: update_buf_size(scale.get()))
+scale.place(relx = 0.1, rely=0.5, anchor="center", y=40)
+
+coefficients = [1 for i in range(8)]
+
+
+def update_coefficients(value):
+    for i in range(8):
+        coefficients[i] = 1.0 - slider_vars[i].get()
+
+# Создание переменных для хранения значений слайдеров
+slider_vars = [tk.DoubleVar() for _ in range(8)]
+
+# Создание и размещение слайдеров
+for i in range(8):
+    slider = tk.Scale(root, from_=0, to=1, resolution=0.1, orient=tk.VERTICAL, variable=slider_vars[i], command=update_coefficients, length=400)
+    slider.set(10 - coefficients[i] * 10)  # Установка начального значения слайдера
+    slider.place(relx=0.2+i/10, rely=0.5, anchor="center")
+
 
 def update_buf_size(val):
     global buf_size
     buf_label.configure(text="Buffer size: "+str(val))
     buf_size = int(val)
-
-scale = tk.Scale(root, from_=64, to=2048, orient=tk.HORIZONTAL)
-scale.set(buf_size)
-scale.bind("<ButtonRelease-1>", lambda event: update_buf_size(scale.get()))
-scale.place(relx = 0.1, rely=0.4, anchor="center", y=40)
-
-def update_order1(value):
-    global order1
-    value = int(value)
-    order1 = value*(-1) * 100 + 1 if value < -20 else value*(-1) * 2 + 1
-
-def update_order2(value):
-    global order2
-    value = int(value)
-    order2 = value*(-1) * 100 + 1 if value < -20 else value*(-1) * 2 + 1
-
-def update_order3(value):
-    global order3
-    value = int(value)
-    order3 = value*(-1) * 100 + 1 if value < -20 else value*(-1) * 2 + 1
-
-def update_order4(value):
-    global order4
-    value = int(value)
-    order4 = value*(-1) * 100 + 1 if value < -20 else value*(-1) * 2 + 1
-
-def update_order5(value):
-    global order5
-    value = int(value)
-    order5 = value*(-1) * 100 + 1 if value < -20 else value*(-1) * 2 + 1
-
-def update_order6(value):
-    global order6
-    value = int(value)
-    order6 = value*(-1) * 100 + 1 if value < -20 else value*(-1) * 2 + 1
-
-def update_order7(value):
-    global order7
-    value = int(value)
-    order7 = value*(-1) * 100 + 1 if value < -20 else value*(-1) * 2 + 1
-
-def update_order8(value):
-    global order8
-    value = int(value)
-    order8 = value*(-1) * 100 + 1 if value < -20 else value*(-1) * 2 + 1
-
-
-slider1 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order1)
-slider1.place(relx=0.2, rely=0.45, anchor="center")
-
-slider2 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order2)
-slider2.place(relx=0.3, rely=0.45, anchor="center")
-
-slider3 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order3)
-slider3.place(relx=0.4, rely=0.45, anchor="center")
-
-slider4 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order4)
-slider4.place(relx=0.5, rely=0.45, anchor="center")
-
-slider5 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order5)
-slider5.place(relx=0.6, rely=0.45, anchor="center")
-
-slider6 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order6)
-slider6.place(relx=0.7, rely=0.45, anchor="center")
-
-slider7 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order7)
-slider7.place(relx=0.8, rely=0.45, anchor="center")
-
-slider8 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order8)
-slider8.place(relx=0.9, rely=0.45, anchor="center")
 
 
 def get_file_name(path):
@@ -120,6 +63,7 @@ def get_file_name(path):
     # Extract the file name substring from the path
     file_name = path[last_slash+1:last_dot]
     return file_name
+
 
 def select_file():
     global file_path
@@ -142,24 +86,44 @@ def play_stop():
         playing = False
 
 
-def play_audio(): 
+def apply_equalizer(coefficients, data):
+    filtered_data = np.zeros_like(data, dtype=np.int16)
+
+    b = signal.firwin(5001, 100, pass_zero='lowpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[0] * signal.convolve(data, b, mode='same')))
+
+    b = signal.firwin(5001, [100, 300], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[1] * signal.convolve(data, b, mode='same')))
+
+    b = signal.firwin(5001, [300, 700], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[2] * signal.convolve(data, b, mode='same')))
+
+    b = signal.firwin(5001, [700, 1500], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[3] * signal.convolve(data, b, mode='same')))
+    
+    b = signal.firwin(5001, [1500, 3100], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[4] * signal.convolve(data, b, mode='same')))
+    
+    b = signal.firwin(5001, [3100, 6300], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[5] * signal.convolve(data, b, mode='same')))
+    
+    b = signal.firwin(5001, [6300, 12700], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[6] * signal.convolve(data, b, mode='same')))
+    
+    b = signal.firwin(5001, [12700, 20000], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[7] * signal.convolve(data, b, mode='same')))
+
+    return np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
+
+
+def play_audio():
     wf = wave.open(file_path, 'rb')
     p = pyaudio.PyAudio()
-    
+
     def callback(in_data, frame_count, time_info, status):
         if filter_on:
-            data = np.frombuffer(wf.readframes(frame_count), dtype=np.short)
-            if order1 == order2 == order3 == order4 == order5 == order6 == order7 == order8 == 5001:
-                data = filters.rectangle_window_filter_lowpass(data, 7501, 1)
-            else:
-                data = filters.rectangle_window_filter_highpass(data, order1, 100)
-                data = filters.rectangle_window_filter_bandstop(data, order2, 100, 300)
-                data = filters.rectangle_window_filter_bandstop(data, order3, 300, 700)
-                data = filters.rectangle_window_filter_bandstop(data, order4, 700, 1500)
-                data = filters.rectangle_window_filter_bandstop(data, order5, 1500, 3100)
-                data = filters.rectangle_window_filter_bandstop(data, order6, 3100, 6300)
-                data = filters.rectangle_window_filter_bandstop(data, order7, 6300, 12700)
-                data = filters.rectangle_window_filter_lowpass(data, order8, 12700)
+            data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
+            data = apply_equalizer(coefficients, data)
         else:
             data = wf.readframes(frame_count)
         if playing:
@@ -190,11 +154,11 @@ def toggle_filter():
 
 # Define the file selection button
 file_btn = tk.Button(root, text="Select File", command=select_file, font=("Bahnschrift", 16))
-file_btn.place(relx=0.1, rely=0.3, anchor="center")
+file_btn.place(relx=0.1, rely=0.2, anchor="center")
 
 # Define the play/stop button
 play_btn = tk.Button(root, text="Play", command=play_stop, font=("Bahnschrift", 16))
-play_btn.place(relx=0.1, rely=0.55, anchor="center")
+play_btn.place(relx=0.1, rely=0.8, anchor="center")
 
 # Define the filter_on button
 filter_btn = tk.Button(root, text="Filter: OFF", command=toggle_filter, font=("Bahnschrift", 16))
