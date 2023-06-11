@@ -14,7 +14,7 @@ def rectangle_window_filter_bandstop(data, order=5001, low_cutoff=100, high_cuto
     b = signal.firwin(order, cutoff_freq, window='rectangular', pass_zero='bandstop', fs=44100)
 
     # apply filter to audio signal
-    filtered_data = signal.lfilter(b, 1, data, axis=0)
+    filtered_data = signal.lfilter(b, 1, data)
 
     # normalize filter result for playback
     filtered_data = np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
@@ -49,7 +49,7 @@ def rectangle_window_filter_highpass(data, order=5001, cutoff_freq=10000):
     # b = signal.firwin(order, cutoff_freq, window='hamming', pass_zero='highpass', fs=44100)
 
     # apply filter to audio signal
-    filtered_data = signal.lfilter(b, 1, data, axis=0)
+    filtered_data = signal.lfilter(b, 1, data)
 
     # normalize filter result for playback
     filtered_data = np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
@@ -79,7 +79,7 @@ def rectangle_window_filter_lowpass(data, order=5000, cutoff_freq=100):
     b = signal.firwin(order, cutoff_freq, window='rectangular', pass_zero='lowpass', fs=44100)
 
     # apply filter to audio signal
-    filtered_data = signal.lfilter(b, 1, data, axis=0)
+    filtered_data = signal.lfilter(b, 1, data)
 
     # normalize filter result for playback
     filtered_data = np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
