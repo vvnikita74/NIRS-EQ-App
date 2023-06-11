@@ -20,7 +20,12 @@ file_path = ""
 playing = False
 buf_size = 2048
 filter_on = False
-order = 1
+
+order1 = 1
+order2 = 1
+order3 = 1
+order4 = 1
+
 
 file_label = tk.Label(root, text='Selected file: None', font=("Bahnschrift", 16))
 file_label.place(relx=0.1, rely=0.25, anchor="center", y=10)
@@ -38,14 +43,38 @@ scale.set(buf_size)
 scale.bind("<ButtonRelease-1>", lambda event: update_buf_size(scale.get()))
 scale.place(relx = 0.1, rely=0.4, anchor="center", y=40)
 
-def update_order(value):
-    global order
-    print(order)
-    order = int(value)*(-1) * 100 + 1 if order > 20 else int(value)*(-1) * 2 + 1
-    print(f"FILTER ORDER:{order}")
+def update_order1(value):
+    global order1
+    order1 = int(value)*(-1) * 150 + 1 if order1 > 20 else int(value)*(-1) * 2 + 1
+    print(f"FILTER ORDER1:{order1}")
 
-slider = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", tickinterval=10, resolution=1, command=update_order)
-slider.place(relx=0.2, rely=0.45, anchor="center")
+def update_order2(value):
+    global order2
+    order2 = int(value)*(-1) * 150 + 1 if order2 > 20 else int(value)*(-1) * 2 + 1
+    print(f"FILTER ORDER2:{order2}")
+
+def update_order3(value):
+    global order3
+    order3 = int(value)*(-1) * 150 + 1 if order3 > 20 else int(value)*(-1) * 2 + 1
+    print(f"FILTER ORDER3:{order3}")
+
+def update_order4(value):
+    global order4
+    order4 = int(value)*(-1) * 150 + 1 if order4 > 20 else int(value)*(-1) * 2 + 1
+    print(f"FILTER ORDER4:{order4}")
+
+
+slider1 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order1)
+slider1.place(relx=0.2, rely=0.45, anchor="center")
+
+slider2 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order2)
+slider2.place(relx=0.3, rely=0.45, anchor="center")
+
+slider3 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order3)
+slider3.place(relx=0.4, rely=0.45, anchor="center")
+
+slider4 = tk.Scale(root, from_=0, to=-50, length=200, orient="vertical", resolution=1, command=update_order4)
+slider4.place(relx=0.5, rely=0.45, anchor="center")
 
 def get_file_name(path):
     # Find the index of the last slash in the path
@@ -84,7 +113,10 @@ def play_audio():
     def callback(in_data, frame_count, time_info, status):
         if filter_on:
             data = np.frombuffer(wf.readframes(frame_count), dtype=np.short)
-            data = filters.rectangle_window_filter_lowpass(data, order, 100)
+            data = filters.rectangle_window_filter_highpass(data, order1, 100)
+            data = filters.rectangle_window_filter_bandstop(data, order2, 100, 3000)
+            data = filters.rectangle_window_filter_bandstop(data, order3, 3000, 12000)
+            data = filters.rectangle_window_filter_lowpass(data, order4, 12000)
         else:
             data = wf.readframes(frame_count)
         if playing:
@@ -97,7 +129,7 @@ def play_audio():
                     rate=wf.getframerate(),
                     output=True,
                     stream_callback=callback,
-                    frames_per_buffer=buf_size*8)
+                    frames_per_buffer=buf_size*24)
     
     while stream.is_active():
         time.sleep(0.1)
