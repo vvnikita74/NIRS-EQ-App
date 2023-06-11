@@ -67,7 +67,7 @@ def play_audio():
     def callback(in_data, frame_count, time_info, status):
         if filter_on:
             data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
-            data = filter(data)
+            data = butter_filter(data)
         else:
             data = wf.readframes(frame_count)
         if playing:
@@ -86,25 +86,26 @@ def play_audio():
         time.sleep(0.1)
 
 
-# Define a function for filter 
-def filter(data):
+# Define a function for butter filter 
+def butter_filter(data):
     
-    # define FIR Filter Parameters
-    order = 5000 # filter order
-    cutoff_freq = 100 # сutoff frequency in Hz
+    # define IIR filter parameters
+    order = 10 # filter order
+    low_cutoff = 150 # Lower cutoff frequency in Hz
+    high_cutoff = 6000 # Upper cutoff frequency in Hz
+    cutoff_freq = [low_cutoff, high_cutoff]
     
-    # coefficients for rectangular window
-    b = signal.firwin(order, cutoff_freq, window='rectangular', pass_zero='lowpass', fs=44100)
+    # coefficients for butterworth filter
+    # b, a = signal.butter(order, cutoff_freq, 'bandpass', fs=44100)
     
-    # coefficients for hamming window
-    # b = signal.firwin(order, cutoff_freq, window='hamming', pass_zero='lowpass', fs=44100)
+    # coefficients for chebyshev filter of the 1st kind
+    b, a = signal.cheby1(order, 3, cutoff_freq, 'bandpass', fs=44100)
     
     # apply filter to audio signal
-    filtered_data = signal.lfilter(b, 1, data)
-
-    # normalize filter result for playback
+    filtered_data = signal.filtfilt(b, a, data)
+        
+    # normalize filter result for playback  
     filtered_data = np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
-    
     return filtered_data
 
 
