@@ -1,4 +1,4 @@
 # NIRS-EQ-App
- 
-Equalizer app based on Python (Tkinter + Scipy)
-Also a Matlab project for similar app
+
+<p>Equalizer app based on Python (Tkinter + Scipy)<br>
+Also a Matlab project for similar app</p>
