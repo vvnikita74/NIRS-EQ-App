@@ -14,12 +14,18 @@ root = tk.Tk()
 root.title("Equalizer")
 root.geometry("1366x600")
 
-
 # Define variables to store the file path and playback/filter status, default buffer size
 file_path = ""
 playing = False
 buf_size = 2048
 filter_on = False
+
+# Number of bands
+coefficients = [1 for i in range(8)]
+
+# Creating variables to store slider values
+slider_vars = [tk.DoubleVar() for _ in range(len(coefficients))]
+
 
 file_label = tk.Label(root, text='Selected file: None', font=("Bahnschrift", 16))
 file_label.place(relx=0.1, rely=0.1, anchor="center", y=10)
@@ -32,20 +38,16 @@ scale.set(buf_size)
 scale.bind("<ButtonRelease-1>", lambda event: update_buf_size(scale.get()))
 scale.place(relx = 0.1, rely=0.5, anchor="center", y=40)
 
-coefficients = [1 for i in range(8)]
-
 
 def update_coefficients(value):
-    for i in range(8):
-        coefficients[i] = 1.0 - slider_vars[i].get()
+    for i in range(len(coefficients)):
+        coefficients[i] = 1.0 + slider_vars[i].get()
 
-# Создание переменных для хранения значений слайдеров
-slider_vars = [tk.DoubleVar() for _ in range(8)]
 
-# Создание и размещение слайдеров
-for i in range(8):
-    slider = tk.Scale(root, from_=0, to=1, resolution=0.1, orient=tk.VERTICAL, variable=slider_vars[i], command=update_coefficients, length=400)
-    slider.set(10 - coefficients[i] * 10)  # Установка начального значения слайдера
+# Creating and placing sliders
+for i in range(len(coefficients)):
+    slider = tk.Scale(root, from_=0, to=-1, resolution=0.1, orient=tk.VERTICAL, variable=slider_vars[i], command=update_coefficients, length=400)
+    slider.set(10 - coefficients[i] * 10)  # Setting the initial value
     slider.place(relx=0.2+i/10, rely=0.5, anchor="center")
 
 

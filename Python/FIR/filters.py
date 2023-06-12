@@ -5,7 +5,41 @@ import numpy as np
 
 #----BANDPASS-----
 
-# Define a function for rectangle filter 
+# Define a function for rectangle bandpass filter 
+def rectangle_window_filter_bandpass(data, order=5001, low_cutoff=100, high_cutoff=10000):
+    
+    cutoff_freq = [low_cutoff, high_cutoff]
+    
+    # coefficients for rectangular window
+    b = signal.firwin(order, cutoff_freq, window='rectangular', pass_zero='bandpass', fs=44100)
+
+    # apply filter to audio signal
+    filtered_data = signal.lfilter(b, 1, data)
+
+    # normalize filter result for playback
+    filtered_data = np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
+    
+    return filtered_data
+
+# Define a function for hamming bandpass filter 
+def hamming_window_filter_bandpass(data, order=5001, low_cutoff=100, high_cutoff=10000):
+    
+    cutoff_freq = [low_cutoff, high_cutoff]
+    
+    # coefficients for hamming window
+    b = signal.firwin(order, cutoff_freq, window='hamming', pass_zero='bandpass', fs=44100)
+
+    # apply filter to audio signal
+    filtered_data = signal.lfilter(b, 1, data)
+
+    # normalize filter result for playback
+    filtered_data = np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
+    
+    return filtered_data
+
+#----BANDSTOP-----
+
+# Define a function for rectangle bandstop filter 
 def rectangle_window_filter_bandstop(data, order=5001, low_cutoff=100, high_cutoff=10000):
     
     cutoff_freq = [low_cutoff, high_cutoff]
@@ -21,7 +55,7 @@ def rectangle_window_filter_bandstop(data, order=5001, low_cutoff=100, high_cuto
     
     return filtered_data
 
-# Define a function for rectangle filter 
+# Define a function for hamming bandstop filter 
 def hamming_window_filter_bandstop(data, order=5001, low_cutoff=100, high_cutoff=10000):
     
     cutoff_freq = [low_cutoff, high_cutoff]
@@ -39,7 +73,7 @@ def hamming_window_filter_bandstop(data, order=5001, low_cutoff=100, high_cutoff
 
 #----HIGHPASS-----
 
-# Define a function for butter filter 
+# Define a function for rectangle highpass filter 
 def rectangle_window_filter_highpass(data, order=5001, cutoff_freq=10000):
 
     # coefficients for rectangular window
@@ -56,7 +90,7 @@ def rectangle_window_filter_highpass(data, order=5001, cutoff_freq=10000):
     
     return filtered_data
 
-# Define a function for butter filter 
+# Define a function for hamming highpass filter 
 def hamming_window_filter_highpass(data, order=5001, cutoff_freq=10000):
 
     # coefficients for hamming window
@@ -72,7 +106,7 @@ def hamming_window_filter_highpass(data, order=5001, cutoff_freq=10000):
 
 #----LOWPASS------
 
-# Define a function for filter 
+# Define a function for rectangle lowpass filter 
 def rectangle_window_filter_lowpass(data, order=5000, cutoff_freq=100):
 
     # coefficients for rectangular window
@@ -86,7 +120,7 @@ def rectangle_window_filter_lowpass(data, order=5000, cutoff_freq=100):
     
     return filtered_data
 
-# Define a function for filter 
+# Define a function for hamming lowpass filter 
 def hamming_window_filter_lowpass(data, order=5000, cutoff_freq=100):
     
     # coefficients for hamming window
@@ -99,3 +133,5 @@ def hamming_window_filter_lowpass(data, order=5000, cutoff_freq=100):
     filtered_data = np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
     
     return filtered_data
+
+# Define a function for multiple band filters
