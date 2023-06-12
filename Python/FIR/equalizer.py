@@ -28,6 +28,17 @@ frequency = [100, 300, 700, 1500, 3100, 6300, 12700]
 # Creating variables to store slider values
 slider_vars = [tk.DoubleVar() for _ in range(len(coefficients))]
 
+# Creating variables to store slider labels
+slider_label = [i for i in range(len(coefficients))]
+for i in range(len(coefficients)):
+    if i == 0:
+        slider_label[i] = f"0 - {frequency[i]}"
+    else:
+        if i == len(coefficients) - 1:
+            slider_label[i] = f"{frequency[i-1]} - 20000"
+        else:
+            slider_label[i] = f"{frequency[i-1]} - {frequency[i]}"
+
 
 file_label = tk.Label(root, text='Selected file: None', font=("Bahnschrift", 16))
 file_label.place(relx=0.1, rely=0.1, anchor="center", y=10)
@@ -48,6 +59,9 @@ def update_coefficients(value):
 
 # Creating and placing sliders
 for i in range(len(coefficients)):
+    label = tk.Label(root, text=f"{slider_label[i]}", font=("Bahnschrift", 12))
+    label.place(relx=0.21+i/10, rely=0.9, anchor="center")
+    print(slider_label[i])
     slider = tk.Scale(root, from_=0, to=-1, resolution=0.1, orient=tk.VERTICAL, variable=slider_vars[i], command=update_coefficients, length=400)
     slider.set(10 - coefficients[i] * 10)  # Setting the initial value
     slider.place(relx=0.2+i/10, rely=0.5, anchor="center")

@@ -80,6 +80,11 @@ def rectangle_window_filter_lowpass(data, order=5000, cutoff_freq=100):
 # Define a function for multiple band filters
 
 def apply_equalizer(coefficients, data, order, frequency, fs):
+    
+    # Checking for the same coefficients -> reducing the overall volume
+    if coefficients.count(coefficients[0]) == len(coefficients):
+        return (data*coefficients[0]).astype(np.int16).tobytes()
+
     filtered_data = np.zeros_like(data, dtype=np.int16)
 
     b = signal.firwin(order, frequency[0], pass_zero='lowpass', fs=44100)
@@ -92,13 +97,4 @@ def apply_equalizer(coefficients, data, order, frequency, fs):
     b = signal.firwin(order, frequency[-1], pass_zero='highpass', fs=44100)
     filtered_data = np.float32((filtered_data + coefficients[-1] * signal.convolve(data, b, mode='same')))
 
-    # if want to decrease a full volume with equal coefficients
-    '''
-    if coefficients.count(coefficients[0]) == len(coefficients):
-        return np.int16((filtered_data / np.max(np.abs(filtered_data)) * 32767)* mean(coefficients))
-    else:
-        return np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
-    '''
-    
-    # default mode
     return np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
