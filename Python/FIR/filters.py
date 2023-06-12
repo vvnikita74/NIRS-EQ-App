@@ -37,6 +37,7 @@ def hamming_window_filter_bandpass(data, order=5001, low_cutoff=100, high_cutoff
     
     return filtered_data
 
+
 #----BANDSTOP-----
 
 # Define a function for rectangle bandstop filter 
@@ -71,6 +72,7 @@ def hamming_window_filter_bandstop(data, order=5001, low_cutoff=100, high_cutoff
     
     return filtered_data
 
+
 #----HIGHPASS-----
 
 # Define a function for rectangle highpass filter 
@@ -104,6 +106,7 @@ def hamming_window_filter_highpass(data, order=5001, cutoff_freq=10000):
     
     return filtered_data
 
+
 #----LOWPASS------
 
 # Define a function for rectangle lowpass filter 
@@ -134,4 +137,24 @@ def hamming_window_filter_lowpass(data, order=5000, cutoff_freq=100):
     
     return filtered_data
 
+
+#----MULTIPLE BANDS-------
+
 # Define a function for multiple band filters
+
+def apply_equalizer(coefficients, data, order, frequency, fs):
+    filtered_data = np.zeros_like(data, dtype=np.int16)
+
+    b = signal.firwin(order, frequency[0], pass_zero='lowpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[0] * signal.convolve(data, b, mode='same')))
+    print(f"[{frequency[0]}]", f"Coefficient: {coefficients[0]}")
+    for i in range(len(frequency)-1):
+        b = signal.firwin(5001, [frequency[i], frequency[i+1]], pass_zero='bandpass', fs=fs)
+        filtered_data = np.float32((filtered_data + coefficients[i+1] * signal.convolve(data, b, mode='same')))
+        print([frequency[i], frequency[i+1]], f"Coefficient{coefficients[i]}")
+
+    b = signal.firwin(order, frequency[-1], pass_zero='highpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[-1] * signal.convolve(data, b, mode='same')))
+    print(f"[{frequency[-1]}]", f"Coefficient: {coefficients[-1]}")
+
+    return np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)

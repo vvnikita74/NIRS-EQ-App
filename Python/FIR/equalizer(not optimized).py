@@ -7,7 +7,7 @@ import filters
 import pyaudio
 import wave
 import time
-from filters import apply_equalizer
+
 
 # Define the main window
 root = tk.Tk()
@@ -22,9 +22,6 @@ filter_on = False
 
 # Number of bands
 coefficients = [1 for i in range(8)]
-
-# Frequency list
-frequency = [100, 300, 700, 1500, 3100, 6300, 12700]
 
 # Creating variables to store slider values
 slider_vars = [tk.DoubleVar() for _ in range(len(coefficients))]
@@ -90,6 +87,37 @@ def play_stop():
         play_btn.configure(text="Play")
         playing = False
 
+
+def apply_equalizer(coefficients, data):
+    filtered_data = np.zeros_like(data, dtype=np.int16)
+
+    b = signal.firwin(5001, 100, pass_zero='lowpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[0] * signal.convolve(data, b, mode='same')))
+
+    b = signal.firwin(5001, [100, 300], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[1] * signal.convolve(data, b, mode='same')))
+
+    b = signal.firwin(5001, [300, 700], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[2] * signal.convolve(data, b, mode='same')))
+
+    b = signal.firwin(5001, [700, 1500], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[3] * signal.convolve(data, b, mode='same')))
+    
+    b = signal.firwin(5001, [1500, 3100], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[4] * signal.convolve(data, b, mode='same')))
+    
+    b = signal.firwin(5001, [3100, 6300], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[5] * signal.convolve(data, b, mode='same')))
+    
+    b = signal.firwin(5001, [6300, 12700], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[6] * signal.convolve(data, b, mode='same')))
+    
+    b = signal.firwin(5001, [12700, 20000], pass_zero='bandpass', fs=44100)
+    filtered_data = np.float32((filtered_data + coefficients[7] * signal.convolve(data, b, mode='same')))
+
+    return np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
+
+
 def play_audio():
     wf = wave.open(file_path, 'rb')
     p = pyaudio.PyAudio()
@@ -97,7 +125,7 @@ def play_audio():
     def callback(in_data, frame_count, time_info, status):
         if filter_on:
             data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
-            data = apply_equalizer(coefficients, data, 5001, frequency, 44100)
+            data = apply_equalizer(coefficients, data)
         else:
             data = wf.readframes(frame_count)
         if playing:
