@@ -1,13 +1,12 @@
+from filters import apply_equalizer
 from tkinter import filedialog
 from scipy import signal
 import tkinter as tk
 import numpy as np
 import threading
-import filters
 import pyaudio
 import wave
 import time
-from filters import apply_equalizer
 
 # Define the main window
 root = tk.Tk()
