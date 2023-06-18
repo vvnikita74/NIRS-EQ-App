@@ -12,7 +12,7 @@ import time
 # Define the main window
 root = tk.Tk()
 root.title("WAV Player")
-root.geometry("1280x720")
+root.geometry("800x720")
 
 
 # Define variables to store the file path and playback/filter status, default buffer size
@@ -74,7 +74,7 @@ def play_audio():
     def callback(in_data, frame_count, time_info, status):
         if filter_on:
             data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
-            data = filters.rectangle_window_filter_bandpass(data)
+            data = filters.rectangular_window_filter_bandpass(data)
         else:
             data = wf.readframes(frame_count)
         if playing:
@@ -87,7 +87,7 @@ def play_audio():
                     rate=wf.getframerate(),
                     output=True,
                     stream_callback=callback,
-                    frames_per_buffer=buf_size*8)
+                    frames_per_buffer=buf_size*24)
     
     while stream.is_active():
         time.sleep(0.1)

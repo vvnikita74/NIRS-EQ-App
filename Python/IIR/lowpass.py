@@ -3,8 +3,8 @@ import threading
 import pyaudio
 import wave
 import time
+import filters
 from tkinter import filedialog
-from functions import *
 from scipy import signal 
 import numpy as np
 
@@ -38,6 +38,14 @@ scale.set(buf_size)
 scale.bind("<ButtonRelease-1>", lambda event: update_buf_size(scale.get()))
 scale.place(relx = 0.5, rely=0.5, anchor="center", y=40)
 
+def get_file_name(path):
+    # Find the index of the last slash in the path
+    last_slash = path.rfind("/")
+    # Find the index of the last dot in the path
+    last_dot = path.rfind(".")
+    # Extract the file name substring from the path
+    file_name = path[last_slash+1:last_dot]
+    return file_name
 
 def select_file():
     global file_path
@@ -67,7 +75,7 @@ def play_audio():
     def callback(in_data, frame_count, time_info, status):
         if filter_on:
             data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
-            data = butter_filter(data)
+            data = filters.cheby_filter_lowpass(data)
         else:
             data = wf.readframes(frame_count)
         if playing:
@@ -80,31 +88,10 @@ def play_audio():
                     rate=wf.getframerate(),
                     output=True,
                     stream_callback=callback,
-                    frames_per_buffer=buf_size*4)
+                    frames_per_buffer=buf_size*24)
     
     while stream.is_active():
         time.sleep(0.1)
-
-
-# Define a function for butter filter 
-def butter_filter(data):
-    
-    # define IIR filter parameters
-    order = 10 # filter order
-    cutoff_freq = 1000 # сutoff frequency in Hz
-    
-    # coefficients for butterworth filter
-    b, a = signal.butter(order, cutoff_freq, 'lowpass', fs=44100)
-    
-    # coefficients for chebyshev filter of the 1st kind
-    # b, a = signal.cheby1(order, 3, cutoff_freq, 'lowpass', fs=44100)
-    
-    # apply filter to audio signal
-    filtered_data = signal.filtfilt(b, a, data)
-        
-    # normalize filter result for playback  
-    filtered_data = np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
-    return filtered_data
 
 
 # Define a function for filter button

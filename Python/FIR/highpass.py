@@ -78,7 +78,7 @@ def play_audio():
     def callback(in_data, frame_count, time_info, status):
         if filter_on:
             data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
-            data = filters.rectangle_window_filter_highpass(data)
+            data = filters.rectangular_window_filter_highpass(data)
         else:
             data = wf.readframes(frame_count)
         if playing:
