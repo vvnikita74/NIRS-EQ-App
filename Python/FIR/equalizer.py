@@ -1,4 +1,5 @@
 from filters import apply_equalizer
+from filters import apply_delay
 from tkinter import filedialog
 from scipy import signal
 import tkinter as tk
@@ -57,11 +58,10 @@ def update_coefficients(value):
         coefficients[i] = 1.0 + slider_vars[i].get()
 
 
-# Creating and placing sliders
+# Creating and placing sliders and its labels
 for i in range(len(coefficients)):
     label = tk.Label(root, text=f"{slider_label[i]}", font=("Bahnschrift", 12))
     label.place(relx=0.21+i/10, rely=0.9, anchor="center")
-    print(slider_label[i])
     slider = tk.Scale(root, from_=0, to=-1, resolution=0.1, orient=tk.VERTICAL, variable=slider_vars[i], command=update_coefficients, length=400)
     slider.set(10 - coefficients[i] * 10)  # Setting the initial value
     slider.place(relx=0.2+i/10, rely=0.5, anchor="center")
@@ -106,7 +106,7 @@ def play_stop():
 def play_audio():
     wf = wave.open(file_path, 'rb')
     p = pyaudio.PyAudio()
-
+    sample_rate = wf.getframerate()
     def callback(in_data, frame_count, time_info, status):
         if filter_on:
             data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
