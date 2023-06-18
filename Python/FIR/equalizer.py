@@ -1,5 +1,6 @@
 from filters import apply_equalizer
 from filters import apply_delay
+from filters import apply_distortion
 from tkinter import filedialog
 from scipy import signal
 import tkinter as tk
@@ -19,6 +20,8 @@ file_path = ""
 playing = False
 buf_size = 2048
 filter_on = False
+delay_on = False
+distortion_on = False
 
 # Number of bands
 coefficients = [1 for i in range(8)]
@@ -41,8 +44,8 @@ for i in range(len(coefficients)):
             slider_label[i] = f"{frequency[i-1]} - {frequency[i]}"
 
 
-file_label = tk.Label(root, text='Selected file: None', font=("Bahnschrift", 16))
-file_label.place(relx=0.1, rely=0.1, anchor="center", y=10)
+file_label = tk.Label(root, text='', font=("Bahnschrift", 16))
+file_label.place(relx=0.15, rely=0.1, anchor="center", y=10)
 
 buf_label = tk.Label(root, text="Buffer size: " + str(buf_size), font=("Bahnschrift", 16))
 buf_label.place(relx=0.1, rely=0.5, anchor="center")
@@ -88,8 +91,6 @@ def select_file():
     file_path = filedialog.askopenfilename(title="Select WAV File", filetypes=(("WAV files", "*.wav"),))
     if file_path:
         file_label.configure(text="Selected File: " + get_file_name(file_path))
-        print("Selected file:", file_path)
-
 
 # Define function for playing/stopping the WAV file
 def play_stop():
@@ -108,11 +109,17 @@ def play_audio():
     p = pyaudio.PyAudio()
     sample_rate = wf.getframerate()
     def callback(in_data, frame_count, time_info, status):
+        data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
+        
         if filter_on:
-            data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
             data = apply_equalizer(coefficients, data, 5001, frequency, 44100)
-        else:
-            data = wf.readframes(frame_count)
+        
+        if delay_on:
+            data = data + apply_delay(data, 0.2)[:len(data)]
+
+        if distortion_on:
+            data = apply_distortion(data, 0.1)
+
         if playing:
             return data, pyaudio.paContinue
         else:
@@ -138,6 +145,24 @@ def toggle_filter():
     else:
         filter_btn.configure(text="Filter: OFF")
 
+# Define a function for delay button
+def toggle_delay():
+    global delay_on
+    delay_on = not delay_on
+    if delay_on:
+        delay_btn.configure(text="Delay: ON")
+    else:
+        delay_btn.configure(text="Delay: OFF")
+
+# Define a function for distortion button
+def toggle_distortion():
+    global distortion_on
+    distortion_on = not distortion_on
+    if distortion_on:
+        distortion_btn.configure(text="Distortion: ON")
+    else:
+        distortion_btn.configure(text="Distortion: OFF")
+
 
 # Define the file selection button
 file_btn = tk.Button(root, text="Select File", command=select_file, font=("Bahnschrift", 16))
@@ -148,8 +173,16 @@ play_btn = tk.Button(root, text="Play", command=play_stop, font=("Bahnschrift", 
 play_btn.place(relx=0.1, rely=0.8, anchor="center")
 
 # Define the filter_on button
-filter_btn = tk.Button(root, text="Filter: OFF", command=toggle_filter, font=("Bahnschrift", 16))
-filter_btn.place(relx=0.1, rely=0.35, anchor="center")
+filter_btn = tk.Button(root, text="Filter: OFF", command=toggle_filter, font=("Bahnschrift", 10))
+filter_btn.place(relx=0.1, rely=0.3, anchor="center")
+
+# Define the filter_on button
+delay_btn = tk.Button(root, text="Delay: OFF", command=toggle_delay, font=("Bahnschrift", 10))
+delay_btn.place(relx=0.1, rely=0.35, anchor="center")
+
+# Define the filter_on button
+distortion_btn = tk.Button(root, text="Distortion: OFF", command=toggle_distortion, font=("Bahnschrift", 10))
+distortion_btn.place(relx=0.1, rely=0.4, anchor="center")
 
 
 # Run the main loop

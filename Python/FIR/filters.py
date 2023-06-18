@@ -101,3 +101,17 @@ def apply_equalizer(coefficients, data, order, frequency, fs):
     return np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
 
 #----EFFECTS--------
+
+def apply_delay(data, delay_amount):
+    delay_length = int(delay_amount * 44100)
+    delay_signal = np.zeros(delay_length + len(data))
+
+    for i in range(len(data)):
+        delay_signal[i + delay_length] = data[i] + np.float64(delay_signal[i]/(i+3))
+    
+    return np.int16(delay_signal / np.max(np.abs(delay_signal)) * 6000)
+
+
+def apply_distortion(data, gain):
+    distorted_data = np.tanh(gain * data)
+    return np.int16(distorted_data / np.max(np.abs(distorted_data)) * 32767 * gain)
