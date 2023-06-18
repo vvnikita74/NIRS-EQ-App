@@ -1,6 +1,6 @@
 from filters import apply_equalizer
 from filters import apply_delay
-from filters import apply_distortion
+from filters import apply_vibrato
 from tkinter import filedialog
 from scipy import signal
 import tkinter as tk
@@ -13,7 +13,7 @@ import time
 # Define the main window
 root = tk.Tk()
 root.title("Equalizer")
-root.geometry("1366x600")
+root.geometry("1440x600")
 
 # Define variables to store the file path and playback/filter status, default buffer size
 file_path = ""
@@ -21,7 +21,8 @@ playing = False
 buf_size = 2048
 filter_on = False
 delay_on = False
-distortion_on = False
+vibrato_on = False
+volume = 1.0
 
 # Number of bands
 coefficients = [1 for i in range(8)]
@@ -47,8 +48,20 @@ for i in range(len(coefficients)):
 file_label = tk.Label(root, text='', font=("Bahnschrift", 16))
 file_label.place(relx=0.15, rely=0.1, anchor="center", y=10)
 
-buf_label = tk.Label(root, text="Buffer size: " + str(buf_size), font=("Bahnschrift", 16))
+buf_label = tk.Label(root, text="Buffer size: " + str(buf_size), font=("Bahnschrift", 14))
 buf_label.place(relx=0.1, rely=0.5, anchor="center")
+
+volume_label = tk.Label(root, text='Volume', font=("Bahnschrift", 14))
+volume_label.place(relx=0.1, rely=0.63, anchor="center", y=10) 
+
+def update_volume(val):
+    global volume
+    volume = float(val)
+    print(volume)
+
+volume_scale = tk.Scale(root, from_=0, to=1, resolution=0.1, orient=tk.HORIZONTAL, command=update_volume)
+volume_scale.set(volume)
+volume_scale.place(relx = 0.1, rely=0.64, anchor="center", y=40)
 
 scale = tk.Scale(root, from_=64, to=2048, orient=tk.HORIZONTAL)
 scale.set(buf_size)
@@ -64,7 +77,7 @@ def update_coefficients(value):
 # Creating and placing sliders and its labels
 for i in range(len(coefficients)):
     label = tk.Label(root, text=f"{slider_label[i]}", font=("Bahnschrift", 12))
-    label.place(relx=0.21+i/10, rely=0.9, anchor="center")
+    label.place(relx=0.2+i/10, rely=0.9, anchor="center")
     slider = tk.Scale(root, from_=0, to=-1, resolution=0.1, orient=tk.VERTICAL, variable=slider_vars[i], command=update_coefficients, length=400)
     slider.set(10 - coefficients[i] * 10)  # Setting the initial value
     slider.place(relx=0.2+i/10, rely=0.5, anchor="center")
@@ -74,6 +87,7 @@ def update_buf_size(val):
     global buf_size
     buf_label.configure(text="Buffer size: "+str(val))
     buf_size = int(val)
+
 
 
 def get_file_name(path):
@@ -107,23 +121,26 @@ def play_stop():
 def play_audio():
     wf = wave.open(file_path, 'rb')
     p = pyaudio.PyAudio()
-    sample_rate = wf.getframerate()
+    
     def callback(in_data, frame_count, time_info, status):
         data = np.frombuffer(wf.readframes(frame_count), dtype=np.int16)
-        
+
         if filter_on:
             data = apply_equalizer(coefficients, data, 5001, frequency, 44100)
         
         if delay_on:
             data = data + apply_delay(data, 0.2)[:len(data)]
 
-        if distortion_on:
-            data = apply_distortion(data, 0.1)
+        if vibrato_on:
+            # data = apply_distortion(data, 0.1)
+            data = data + apply_vibrato(data, 2, 0.05, 44100)[:len(data)]
 
+        data = (np.frombuffer(data, dtype=np.int16) * volume).astype(np.int16)
+        
         if playing:
-            return data, pyaudio.paContinue
+            return data.tobytes(), pyaudio.paContinue
         else:
-            return data, pyaudio.paComplete
+            return data.tobytes(), pyaudio.paComplete
 
     stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
                     channels=wf.getnchannels(),
@@ -155,13 +172,13 @@ def toggle_delay():
         delay_btn.configure(text="Delay: OFF")
 
 # Define a function for distortion button
-def toggle_distortion():
-    global distortion_on
-    distortion_on = not distortion_on
-    if distortion_on:
-        distortion_btn.configure(text="Distortion: ON")
+def toggle_vibrato():
+    global vibrato_on
+    vibrato_on = not vibrato_on
+    if vibrato_on:
+        vibrato_btn.configure(text="Vibrato: ON")
     else:
-        distortion_btn.configure(text="Distortion: OFF")
+        vibrato_btn.configure(text="Vibrato: OFF")
 
 
 # Define the file selection button
@@ -181,8 +198,8 @@ delay_btn = tk.Button(root, text="Delay: OFF", command=toggle_delay, font=("Bahn
 delay_btn.place(relx=0.1, rely=0.35, anchor="center")
 
 # Define the filter_on button
-distortion_btn = tk.Button(root, text="Distortion: OFF", command=toggle_distortion, font=("Bahnschrift", 10))
-distortion_btn.place(relx=0.1, rely=0.4, anchor="center")
+vibrato_btn = tk.Button(root, text="Vibrato: OFF", command=toggle_vibrato, font=("Bahnschrift", 10))
+vibrato_btn.place(relx=0.1, rely=0.4, anchor="center")
 
 
 # Run the main loop

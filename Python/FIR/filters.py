@@ -97,7 +97,7 @@ def apply_equalizer(coefficients, data, order, frequency, fs):
 
     b = signal.firwin(order, frequency[-1], pass_zero='highpass', fs=fs)
     filtered_data = np.float32((filtered_data + coefficients[-1] * signal.convolve(data, b, mode='same')))
-
+    
     return np.int16(filtered_data / np.max(np.abs(filtered_data)) * 32767)
 
 #----EFFECTS--------
@@ -112,6 +112,20 @@ def apply_delay(data, delay_amount):
     return np.int16(delay_signal / np.max(np.abs(delay_signal)) * 6000)
 
 
+'''
 def apply_distortion(data, gain):
     distorted_data = np.tanh(gain * data)
-    return np.int16(distorted_data / np.max(np.abs(distorted_data)) * 32767 * gain)
+    return np.int16(distorted_data / np.max(np.abs(distorted_data)) * 32767 * gain)'''
+
+
+def apply_vibrato(data, vibrato_rate, vibrato_depth, sample_rate):
+    num_samples = len(data)
+    time = np.arange(num_samples) / sample_rate  # Временная ось
+
+    # Рассчитайте смещение на основе модуляционной частоты и глубины модуляции
+    vibrato_offset = vibrato_depth * np.sin(2 * np.pi * vibrato_rate * time)
+
+    # Примените смещение к частоте сигнала
+    vibrato_data = np.interp(time + vibrato_offset, time, data)
+
+    return np.int16(vibrato_data / np.max(np.abs(vibrato_data)) * 8000)
